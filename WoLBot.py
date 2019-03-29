@@ -10,23 +10,39 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-""" Bot Config"""
+""" Bot Config:"""
+
+"""Telegram BOT API Token"""
 bot_token = "TOKEN"
+"""IP or HostName of the desired server"""
 server_ip = "IP/HostName"
+"""Array containing authorized usernames"""
 authorized_users = ["autorized", "usernames"]
+"""Command to execute on the machine running the bot telegram to wake the desired server"""
 wake_cmd = "wake on lan command"
+"""Command to execute on the machine running the bot telegram to shutdown the desired server"""
 shutdown_cmd = "shutdown command"
 
-""" Output messages"""
+""" Output messages:"""
+
+""" Message sent when the user prompts the /start command"""
 welcome_text = 'Welcome!'
-error_auth_text = "Not Authorized."
+""" Message sent when the user prompts the /help command"""
 help_text = 'Help!'
+""" Message sent when the user prompts an invalid command"""
 not_valid_text = " is not a valid command!"
+""" Message sent when the user prompts the /wake command"""
 wake_text = "Waking server..."
+""" Message sent when the user prompts the /shutdown command"""
 shutdown_text = "Shutting down server..."
+""" Message sent when the user prompts the /status command"""
 status_text = "Checking Server Status..."
+""" Message response on online status check"""
 online_text = "Server is Online."
+""" Message response on offline status check"""
 offline_text = "Server is Offline."
+""" Message sent when the user prompts the /start command"""
+error_auth_text = "Not Authorized."
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
