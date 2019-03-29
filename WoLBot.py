@@ -10,8 +10,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-server = "IP/HostName"
-authorized_users = ["authorized", "user", "names"]
+""" Bot Config"""
+bot_token = "TOKEN"
+server_ip = "IP/HostName"
+authorized_users = ["autorized", "usernames"]
+wake_cmd = "wake on lan command"
+shutdown_cmd = "shutdown command"
 
 """ Output messages"""
 welcome_text = 'Welcome!'
@@ -29,11 +33,12 @@ offline_text = "Server is Offline."
 def start(bot, update):
     """Send a message when the command /start is issued."""
     now = datetime.datetime.now()
-    logger.info(update.message.from_user.username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     
     if hasattr(not update.message.from_user, 'username'):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        logger.info("Someone executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
+    logger.info(update.message.from_user.username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
 
     if update.message.from_user.username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=welcome_text)
@@ -44,12 +49,13 @@ def start(bot, update):
 def help(bot, update):
     """Send a message when the command /help is issued."""
     now = datetime.datetime.now()
-    logger.info(update.message.from_user.username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-
+    
     if hasattr(not update.message.from_user, 'username'):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        logger.info("Someone executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
+    logger.info(update.message.from_user.username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=help_text)
     else:
@@ -65,40 +71,43 @@ def error(bot, update):
 
 def wake(bot, update):
     now = datetime.datetime.now()
-    logger.info(update.message.from_user.username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-
+    
     if hasattr(not update.message.from_user, 'username'):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        logger.info("Someone executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
+    logger.info(update.message.from_user.username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
-        subprocess.call("wol_media.sh")
+        subprocess.call(wake_cmd)
         bot.send_message(chat_id=update.message.chat_id, text=wake_text)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
 def shutdown(bot, update):
     now = datetime.datetime.now()
-    logger.info(update.message.from_user.username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-
+    
     if hasattr(not update.message.from_user, 'username'):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        logger.info("Someone executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
+    logger.info(update.message.from_user.username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
-        subprocess.call("media_shutdown.sh")
+        subprocess.call(shutdown_cmd)
         bot.send_message(chat_id=update.message.chat_id, text=shutdown_text)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
 def status(bot, update):
     now = datetime.datetime.now()
-    logger.info(update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-
+    
     if hasattr(not update.message.from_user, 'username'):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        logger.info("Someone executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
+    logger.info(update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=status_text)
         if is_connected():
@@ -110,7 +119,7 @@ def status(bot, update):
 
 def is_connected():
     try:
-        host = socket.gethostbyname(server)
+        host = socket.gethostbyname(server_ip)
         socket.create_connection((host, 80), 2)
         return True
     except:
@@ -121,7 +130,7 @@ def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    updater = Updater("TOKEN")
+    updater = Updater(bot_token)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
