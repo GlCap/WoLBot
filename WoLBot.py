@@ -10,11 +10,19 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-server = "server_hostname"
-authorized_users = ["users","auth"]
+server = "IP/HostName"
+authorized_users = ["authorized", "user", "names"]
 
-
-error_auth = "Not Authorized."
+""" Output messages"""
+welcome_text = 'Welcome!'
+error_auth_text = "Not Authorized."
+help_text = 'Help!'
+not_valid_text = " is not a valid command!"
+wake_text = "Waking server..."
+shutdown_text = "Shutting down server..."
+status_text = "Checking Server Status..."
+online_text = "Server is Online."
+offline_text = "Server is Offline."
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
@@ -22,11 +30,15 @@ def start(bot, update):
     """Send a message when the command /start is issued."""
     now = datetime.datetime.now()
     logger.info(update.message.from_user.username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+    
+    if hasattr(not update.message.from_user, 'username'):
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        return
 
     if update.message.from_user.username in authorized_users:
-        bot.send_message(chat_id=update.message.chat_id, text='Welcome!')
+        bot.send_message(chat_id=update.message.chat_id, text=welcome_text)
     else:
-        bot.send_message(chat_id=update.message.chat_id, text=error_auth)
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
 
 def help(bot, update):
@@ -34,14 +46,18 @@ def help(bot, update):
     now = datetime.datetime.now()
     logger.info(update.message.from_user.username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
 
+    if hasattr(not update.message.from_user, 'username'):
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        return
+
     if update.message.from_user.username in authorized_users:
-        bot.send_message(chat_id=update.message.chat_id, text='Help!')
+        bot.send_message(chat_id=update.message.chat_id, text=help_text)
     else:
-        bot.send_message(chat_id=update.message.chat_id, text=error_auth)
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
 def echo(bot, update):
     """Echo the user message."""
-    bot.send_message(chat_id=update.message.chat_id, text=update.message.text + " is not a valid command!")
+    bot.send_message(chat_id=update.message.chat_id, text=update.message.text + not_valid_text)
 
 def error(bot, update):
     """Log Errors caused by Updates."""
@@ -51,22 +67,46 @@ def wake(bot, update):
     now = datetime.datetime.now()
     logger.info(update.message.from_user.username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
 
+    if hasattr(not update.message.from_user, 'username'):
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        return
+
     if update.message.from_user.username in authorized_users:
         subprocess.call("wol_media.sh")
-        bot.send_message(chat_id=update.message.chat_id, text="Waking server...")
+        bot.send_message(chat_id=update.message.chat_id, text=wake_text)
     else:
-        bot.send_message(chat_id=update.message.chat_id, text=error_auth)
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
 def shutdown(bot, update):
     now = datetime.datetime.now()
     logger.info(update.message.from_user.username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
 
+    if hasattr(not update.message.from_user, 'username'):
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        return
+
     if update.message.from_user.username in authorized_users:
         subprocess.call("media_shutdown.sh")
-        bot.send_message(chat_id=update.message.chat_id, text="Shutting down server...")
+        bot.send_message(chat_id=update.message.chat_id, text=shutdown_text)
     else:
-        bot.send_message(chat_id=update.message.chat_id, text=error_auth)
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
+def status(bot, update):
+    now = datetime.datetime.now()
+    logger.info(update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+
+    if hasattr(not update.message.from_user, 'username'):
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
+        return
+
+    if update.message.from_user.username in authorized_users:
+        bot.send_message(chat_id=update.message.chat_id, text=status_text)
+        if is_connected():
+            bot.send_message(chat_id=update.message.chat_id, text=online_text)
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text=offline_text)
+    else:
+        bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
 def is_connected():
     try:
@@ -75,22 +115,6 @@ def is_connected():
         return True
     except:
         return False
-  
-
-def status(bot, update):
-    now = datetime.datetime.now()
-    logger.info(update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-
-    if update.message.from_user.username in authorized_users:
-        bot.send_message(chat_id=update.message.chat_id, text="Checking Server Status...")
-        if is_connected():
-            bot.send_message(chat_id=update.message.chat_id, text="Server is Online.")
-        else:
-            bot.send_message(chat_id=update.message.chat_id, text="Server is Offline.")
-    else:
-        bot.send_message(chat_id=update.message.chat_id, text=error_auth)
-
-
 
 def main():
     """Start the bot."""
