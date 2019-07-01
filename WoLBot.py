@@ -116,6 +116,7 @@ def shutdown(bot, update):
     if update.message.from_user.username in authorized_users:
         subprocess.call(shutdown_cmd)
         bot.send_message(chat_id=update.message.chat_id, text=shutdown_text)
+        bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " stopped the Server.")
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
