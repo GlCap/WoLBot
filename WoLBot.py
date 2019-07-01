@@ -18,6 +18,8 @@ bot_token = "TOKEN"
 server_ip = "IP/HostName"
 """Array containing authorized usernames"""
 authorized_users = ["autorized", "usernames"]
+"""Server admin chat_id to send logging messages """
+admin_id = "000111231"
 """Command to execute on the machine running the bot telegram to wake the desired server"""
 wake_cmd = "wake on lan command"
 """Command to execute on the machine running the bot telegram to shutdown the desired server"""
@@ -97,6 +99,8 @@ def wake(bot, update):
     if update.message.from_user.username in authorized_users:
         subprocess.call(wake_cmd)
         bot.send_message(chat_id=update.message.chat_id, text=wake_text)
+        bot.send_message(chat_id=admin_id, text="Someone started the Server")
+
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
