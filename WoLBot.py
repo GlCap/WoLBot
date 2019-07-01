@@ -99,7 +99,7 @@ def wake(bot, update):
     if update.message.from_user.username in authorized_users:
         subprocess.call(wake_cmd)
         bot.send_message(chat_id=update.message.chat_id, text=wake_text)
-        bot.send_message(chat_id=admin_id, text="Someone started the Server")
+        bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " started the Server.")
 
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
