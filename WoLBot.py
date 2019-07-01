@@ -5,8 +5,7 @@ import datetime
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ server_ip = "IP/HostName"
 """Array containing authorized usernames"""
 authorized_users = ["autorized", "usernames"]
 """Server admin chat_id to send logging messages """
-admin_id = "000111231"
+admin_id = "server admin chat_id"
 """Command to execute on the machine running the bot telegram to wake the desired server"""
 wake_cmd = "wake on lan command"
 """Command to execute on the machine running the bot telegram to shutdown the desired server"""
