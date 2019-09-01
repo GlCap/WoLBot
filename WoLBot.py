@@ -23,6 +23,8 @@ admin_id = "server admin chat_id"
 wake_cmd = "wake on lan command"
 """Command to execute on the machine running the bot telegram to shutdown the desired server"""
 shutdown_cmd = "shutdown command"
+"""List containing currently connected users"""
+connected_users = []
 
 """ Output messages:"""
 
@@ -94,12 +96,14 @@ def wake(bot, update):
         logger.info("Someone executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
-    logger.info(update.message.from_user.username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-    if update.message.from_user.username in authorized_users:
-        subprocess.call(wake_cmd)
-        bot.send_message(chat_id=update.message.chat_id, text=wake_text)
-        bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " started the Server.")
-
+    username = update.message.from_user.username
+    if username in authorized_users:
+       if username not in connected_users:
+            logger.info(username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+            connected_users.append(username)
+            subprocess.call(wake_cmd)
+            bot.send_message(chat_id=update.message.chat_id, text=wake_text)
+            bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " started the Server.")
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
@@ -111,11 +115,15 @@ def shutdown(bot, update):
         logger.info("Someone executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
-    logger.info(update.message.from_user.username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-    if update.message.from_user.username in authorized_users:
-        subprocess.call(shutdown_cmd)
-        bot.send_message(chat_id=update.message.chat_id, text=shutdown_text)
-        bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " stopped the Server.")
+    username = update.message.from_user.username
+    if username in authorized_users:
+        if username in connected_users:
+            connected_users.remove(username)
+            if not connected_users:
+                subprocess.call(shutdown_cmd)
+                logger.info(username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+                bot.send_message(chat_id=update.message.chat_id, text=shutdown_text)
+                bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " stopped the Server.")
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
@@ -132,8 +140,10 @@ def status(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=status_text)
         if is_connected():
             bot.send_message(chat_id=update.message.chat_id, text=online_text)
+            bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + '\n'.join(connected_users))
         else:
             bot.send_message(chat_id=update.message.chat_id, text=offline_text)
+            bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + '\n'.join(connected_users))
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
