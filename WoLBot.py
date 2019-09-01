@@ -138,12 +138,12 @@ def status(bot, update):
     logger.info(update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=status_text)
+        bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + '\n'.join(connected_users))
+
         if is_connected():
             bot.send_message(chat_id=update.message.chat_id, text=online_text)
-            bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + '\n'.join(connected_users))
         else:
             bot.send_message(chat_id=update.message.chat_id, text=offline_text)
-            bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + '\n'.join(connected_users))
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
