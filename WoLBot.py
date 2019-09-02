@@ -154,10 +154,10 @@ def shutdown(bot, update):
             if not connected_users:
                 subprocess.call(shutdown_cmd)
                 bot.send_message(chat_id=update.message.chat_id, text='@' + shutdown_text)
-                bot.send_message(chat_id=admin_id, text='@' + username + " logged out, "+ server_name +" is shutting down.")
+                bot.send_message(chat_id=admin_id, text=username + " logged out, "+ server_name +" is shutting down.")
             else:
                 bot.send_message(chat_id=update.message.chat_id, text=logout_text)
-                bot.send_message(chat_id=admin_id, text='@' + username + " logged out.")
+                bot.send_message(chat_id=admin_id, text=username + " logged out.")
         else:
             bot.send_message(chat_id=update.message.chat_id, text=error_already_loggedout)
     else:
