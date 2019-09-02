@@ -43,12 +43,12 @@ wake_text = "Waking " + server_name + '.'
 """ Message sent when the user prompts the /logout command"""
 shutdown_text = "Shutting down " + server_name + '.'
 """ Message sent when the user prompts the /status command"""
-status_text = "Checking " + server_name + "current status:"
+status_text = "Checking " + server_name + " current status:"
 """ Message response on online status check"""
 online_text = server_name + ": Online."
 """ Message response on offline status check"""
 offline_text = server_name + ": Offline."
-""" Message sent when the user prompts the /start command and is not authorized"""
+""" Message sent when the user prompts the /start command"""
 error_auth_text = "You are not authorized."
 """ Message sent when the user logs in"""
 login_text = "You are now logged in, remember to logout."
@@ -69,15 +69,18 @@ def start(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
         logger.info("Someone executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
-    logger.info('@' + update.message.from_user.username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-
-    if update.message.from_user.username in authorized_users:
-        kb = [[KeyboardButton('/login')],
+   
+    username = '@' + update.message.from_user.username
+    logger.info(username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+    
+    if username in authorized_users:
+        kb = [
+            [KeyboardButton('/login')],
             [KeyboardButton('/logout')],
             [KeyboardButton('/status')]
             ]
         kb_markup = ReplyKeyboardMarkup(kb, resize_keyboard=True)
-        bot.send_message(chat_id=update.message.chat_id, text=welcome_text + '@' + update.message.from_user.username , reply_markup=kb_markup)
+        bot.send_message(chat_id=update.message.chat_id, text=welcome_text + username , reply_markup=kb_markup)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
@@ -91,8 +94,10 @@ def help(bot, update):
         logger.info("Someone executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
-    logger.info('@' + update.message.from_user.username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-    if update.message.from_user.username in authorized_users:
+    username = '@' + update.message.from_user.username
+    logger.info(username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+
+    if username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=help_text)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
@@ -113,19 +118,20 @@ def wake(bot, update):
         logger.info("Someone executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
-    username = update.message.from_user.username
+    username = '@' + update.message.from_user.username
+    logger.info(username + " executed /login command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+    
     if username in authorized_users:
         if username not in connected_users:
-            logger.info(username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
             if not connected_users:
                 connected_users.append(username)
                 subprocess.call(wake_cmd)
                 bot.send_message(chat_id=update.message.chat_id, text=wake_text)
-                bot.send_message(chat_id=admin_id, text='@' + update.message.from_user.username + " logged in, " + server_name + " is waking up.")
+                bot.send_message(chat_id=admin_id, text=username + " logged in, " + server_name + " is waking up.")
             else:
                 connected_users.append(username)
                 bot.send_message(chat_id=update.message.chat_id, text=login_text)
-                bot.send_message(chat_id=admin_id, text='@' + update.message.from_user.username + " logged in.")
+                bot.send_message(chat_id=admin_id, text=username + " logged in.")
         else:
             bot.send_message(chat_id=update.message.chat_id, text=error_already_loggedin)
     else:
@@ -136,16 +142,17 @@ def shutdown(bot, update):
     
     if hasattr(not update.message.from_user, 'username'):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
-        logger.info("Someone executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+        logger.info("Someone executed /logout command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
-    username = update.message.from_user.username
+    username = '@' + update.message.from_user.username
+    logger.info(username + " executed /logout command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+
     if username in authorized_users:
         if username in connected_users:
             connected_users.remove(username)
             if not connected_users:
                 subprocess.call(shutdown_cmd)
-                logger.info(username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
                 bot.send_message(chat_id=update.message.chat_id, text='@' + shutdown_text)
                 bot.send_message(chat_id=admin_id, text='@' + username + " logged out, "+ server_name +" is shutting down.")
             else:
@@ -163,11 +170,13 @@ def status(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
         logger.info("Someone executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
-        
-    logger.info('@' + update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-    if update.message.from_user.username in authorized_users:
+
+    username = '@' + update.message.from_user.username
+    logger.info(username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+
+    if username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=status_text)
-        bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n@" + "\n@".join(connected_users))
+        bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + "\n".join(connected_users))
         if is_connected():
             bot.send_message(chat_id=update.message.chat_id, text=online_text)
         else:
