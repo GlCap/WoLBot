@@ -3,10 +3,10 @@ import subprocess
 import socket
 import datetime
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 """ Bot Config:"""
@@ -15,7 +15,11 @@ logger = logging.getLogger(__name__)
 bot_token = "TOKEN"
 """IP or HostName of the desired server"""
 server_ip = "IP/HostName"
-"""Array containing authorized usernames"""
+""" Server port to use to check online/offline state """
+server_port_check = 80
+"""Server name"""
+server_name = "SERVER_NAME"
+"""List containing authorized usernames"""
 authorized_users = ["autorized", "usernames"]
 """Server admin chat_id to send logging messages """
 admin_id = "server admin chat_id"
@@ -29,23 +33,31 @@ connected_users = []
 """ Output messages:"""
 
 """ Message sent when the user prompts the /start command"""
-welcome_text = 'Welcome!'
+welcome_text = "Welcome "
 """ Message sent when the user prompts the /help command"""
-help_text = 'Help!'
+help_text = "todo"
 """ Message sent when the user prompts an invalid command"""
-not_valid_text = " is not a valid command!"
-""" Message sent when the user prompts the /wake command"""
-wake_text = "Waking server..."
-""" Message sent when the user prompts the /shutdown command"""
-shutdown_text = "Shutting down server..."
+not_valid_text = " is not a valid command."
+""" Message sent when the user prompts the /login command"""
+wake_text = "Waking " + server_name + '.'
+""" Message sent when the user prompts the /logout command"""
+shutdown_text = "Shutting down " + server_name + '.'
 """ Message sent when the user prompts the /status command"""
-status_text = "Checking Server Status..."
+status_text = "Checking " + server_name + "current status:"
 """ Message response on online status check"""
-online_text = "Server is Online."
+online_text = server_name + ": Online."
 """ Message response on offline status check"""
-offline_text = "Server is Offline."
-""" Message sent when the user prompts the /start command"""
-error_auth_text = "Not Authorized."
+offline_text = server_name + ": Offline."
+""" Message sent when the user prompts the /start command and is not authorized"""
+error_auth_text = "You are not authorized."
+""" Message sent when the user logs in"""
+login_text = "You are now logged in, remember to logout."
+""" Message sent when the user logs out"""
+logout_text = "Logout successful, goodbye!"
+""" Message sent when the user tries to login while being already logged in"""
+error_already_loggedin = "You are already logged in."
+""" Message sent when the user tries to login while being already logged out"""
+error_already_loggedout =  "You are already logged out."
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
@@ -57,10 +69,15 @@ def start(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
         logger.info("Someone executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
-    logger.info(update.message.from_user.username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info('@' + update.message.from_user.username + " executed /start command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
 
     if update.message.from_user.username in authorized_users:
-        bot.send_message(chat_id=update.message.chat_id, text=welcome_text)
+        kb = [[KeyboardButton('/login')],
+            [KeyboardButton('/logout')],
+            [KeyboardButton('/status')]
+            ]
+        kb_markup = ReplyKeyboardMarkup(kb, resize_keyboard=True)
+        bot.send_message(chat_id=update.message.chat_id, text=welcome_text + '@' + update.message.from_user.username , reply_markup=kb_markup)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
@@ -74,7 +91,7 @@ def help(bot, update):
         logger.info("Someone executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
 
-    logger.info(update.message.from_user.username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info('@' + update.message.from_user.username + " executed /help command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=help_text)
     else:
@@ -98,12 +115,19 @@ def wake(bot, update):
 
     username = update.message.from_user.username
     if username in authorized_users:
-       if username not in connected_users:
+        if username not in connected_users:
             logger.info(username + " executed /wake command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-            connected_users.append(username)
-            subprocess.call(wake_cmd)
-            bot.send_message(chat_id=update.message.chat_id, text=wake_text)
-            bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " started the Server.")
+            if not connected_users:
+                connected_users.append(username)
+                subprocess.call(wake_cmd)
+                bot.send_message(chat_id=update.message.chat_id, text=wake_text)
+                bot.send_message(chat_id=admin_id, text='@' + update.message.from_user.username + " logged in, " + server_name + " is waking up.")
+            else:
+                connected_users.append(username)
+                bot.send_message(chat_id=update.message.chat_id, text=login_text)
+                bot.send_message(chat_id=admin_id, text='@' + update.message.from_user.username + " logged in.")
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text=error_already_loggedin)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
@@ -122,8 +146,13 @@ def shutdown(bot, update):
             if not connected_users:
                 subprocess.call(shutdown_cmd)
                 logger.info(username + " executed /shutdown command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
-                bot.send_message(chat_id=update.message.chat_id, text=shutdown_text)
-                bot.send_message(chat_id=admin_id, text=update.message.from_user.username + " stopped the Server.")
+                bot.send_message(chat_id=update.message.chat_id, text='@' + shutdown_text)
+                bot.send_message(chat_id=admin_id, text='@' + username + " logged out, "+ server_name +" is shutting down.")
+            else:
+                bot.send_message(chat_id=update.message.chat_id, text=logout_text)
+                bot.send_message(chat_id=admin_id, text='@' + username + " logged out.")
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text=error_already_loggedout)
     else:
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
 
@@ -134,12 +163,11 @@ def status(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=error_auth_text)
         logger.info("Someone executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
         return
-
-    logger.info(update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
+        
+    logger.info('@' + update.message.from_user.username + " executed /status command at " + now.strftime("%Y-%m-%d %H:%M:%S"))
     if update.message.from_user.username in authorized_users:
         bot.send_message(chat_id=update.message.chat_id, text=status_text)
-        bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n" + '\n'.join(connected_users))
-
+        bot.send_message(chat_id=update.message.chat_id, text="Connected users:\n@" + "\n@".join(connected_users))
         if is_connected():
             bot.send_message(chat_id=update.message.chat_id, text=online_text)
         else:
@@ -150,7 +178,7 @@ def status(bot, update):
 def is_connected():
     try:
         host = socket.gethostbyname(server_ip)
-        socket.create_connection((host, 80), 2)
+        socket.create_connection((host, server_port_check), 2)
         return True
     except:
         return False
@@ -168,8 +196,8 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("wake", wake))
-    dp.add_handler(CommandHandler("shutdown", shutdown))
+    dp.add_handler(CommandHandler("login", wake))
+    dp.add_handler(CommandHandler("logout", shutdown))
     dp.add_handler(CommandHandler("status", status))
 
     # on noncommand i.e message - echo the message on Telegram
