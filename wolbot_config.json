@@ -1,0 +1,17 @@
+{
+    "bot_token" : "TOKEN",
+
+    "server_ip" : "SERVER_IP",
+
+    "server_port_check" : 80,
+
+    "server_name" : "SERVER_NAME",
+
+    "authorized_users" : ["some", "user"],
+
+    "admin_id" : "admin chat id",
+
+    "wake_cmd" : "wake command",
+
+    "shutdown_cmd" : "shutdown command"
+}

@@ -2,6 +2,7 @@ import logging
 import subprocess
 import socket
 import datetime
+import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 
@@ -11,22 +12,27 @@ logger = logging.getLogger(__name__)
 
 """ Bot Config:"""
 
+configFile = open(file="wolbot_config.json", mode="r", encoding="utf-8"  )
+config = json.load(configFile)
+
+""" Global Variables:"""
+
 """Telegram BOT API Token"""
-bot_token = "TOKEN"
+bot_token = config["bot_token"]
 """IP or HostName of the desired server"""
-server_ip = "IP/HostName"
+server_ip = config["server_ip"]
 """ Server port to use to check online/offline state """
-server_port_check = 80
+server_port_check = config["server_port_check"]
 """Server name"""
-server_name = "SERVER_NAME"
+server_name = config["server_name"]
 """List containing authorized usernames"""
-authorized_users = ["autorized", "usernames"]
+authorized_users = config["authorized_users"]
 """Server admin chat_id to send logging messages """
-admin_id = "server admin chat_id"
+admin_id = config["admin_id"]
 """Command to execute on the machine running the bot telegram to wake the desired server"""
-wake_cmd = "wake on lan command"
+wake_cmd = config["wake_cmd"]
 """Command to execute on the machine running the bot telegram to shutdown the desired server"""
-shutdown_cmd = "shutdown command"
+shutdown_cmd = config["shutdown_cmd"]
 """List containing currently connected users"""
 connected_users = []
 
